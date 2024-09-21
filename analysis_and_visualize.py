@@ -65,3 +65,47 @@ def plot_expenses_by_month_year():
     plt.tight_layout()
 
     plt.show()
+
+
+import sqlite3
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def fetch_transactions_for_month(account_id, year, month):
+    """Fetch transactions for a specific account and month."""
+    conn = sqlite3.connect('finance_tracker.db')
+    query = """
+    SELECT transaction_date, amount
+    FROM Transactions
+    WHERE account_id = ? AND strftime('%Y', transaction_date) = ? AND strftime('%m', transaction_date) = ?
+    ORDER BY transaction_date
+    """
+    df = pd.read_sql_query(query, conn, params=(account_id, year, month))
+    conn.close()
+    return df
+
+def calculate_cumulative_balance(df, starting_balance):
+    """Calculate the cumulative balance over time."""
+    df['cumulative_balance'] = df['amount'].cumsum() + starting_balance
+    return df
+
+def plot_balance_over_month(df):
+    """Plot balance changes over time."""
+    plt.figure(figsize=(10, 6))
+    plt.plot(df['transaction_date'], df['cumulative_balance'], marker='o', linestyle='-', color='b')
+    plt.xticks(rotation=45)
+    plt.xlabel('Date')
+    plt.ylabel('Cumulative Balance')
+    plt.title('Account Balance Throughout the Month')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+# Example usage
+def visualize_balance_for_month(account_id, starting_balance, year, month):
+    transactions_df = fetch_transactions_for_month(account_id, year, month)
+    if not transactions_df.empty:
+        transactions_df = calculate_cumulative_balance(transactions_df, starting_balance)
+        plot_balance_over_month(transactions_df)
+    else:
+        print("No transactions found for this month.")

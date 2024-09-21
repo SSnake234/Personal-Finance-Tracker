@@ -4,13 +4,13 @@ import analysis_and_visualize
 
 def inserting_action():
     """Handles insertion of users, accounts, categories, and transactions."""
-    print("""
-    Choose inserting:
+    print(
+    """Choose inserting:
         1 for inserting user
         2 for inserting account
         3 for inserting category
-        4 for inserting transaction
-    """)
+        4 for inserting transaction"""
+        )
     
     try:
         choice = int(input("Enter your choice: "))
@@ -61,7 +61,10 @@ def insert_transaction():
     print("Inserting transaction...")
     try:
         account_id = int(input("Enter account ID: "))
-        category_id = int(input("Enter category ID (e.g., 1 for Food): "))
+        category_id = int(input(
+            """Enter category ID (1: Food; 2: Rent; 3: Utilities; 4: Clothing; 5: Travel;
+            6: Health; 7: Salary + Income; 8: Others): """
+            ))
         amount = float(input("Enter amount: "))
         transaction_type = input("Enter transaction type (income/expense): ").lower()
         if transaction_type not in ['income', 'expense']:
@@ -75,13 +78,13 @@ def insert_transaction():
 
 def analysis_action():
     """Handles financial analysis like balance, expenses, and category breakdown."""
-    print("""
-    Choose analysis:
+    print(
+    """Choose analysis:
         1 for total balance
         2 for total expenses for a month
         3 for category-wise breakdown
         4 for visualize spending by month and year
-    """)
+        """)
     try:
         analysis_choice = int(input("Enter your choice: "))
         

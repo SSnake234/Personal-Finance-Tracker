@@ -3,13 +3,13 @@ import actions
 # Main program loop
 def main():
     while True:
-        print("""
-        Choose your action:
+        print(
+        """Choose your action:
             1 for inserting data
             2 for analysis
             3 for custom SQL command
-            4 to exit
-        """)
+            4 to exit"""
+            )
         try:
             choice = int(input("Enter your choice: "))
             if choice == 1:

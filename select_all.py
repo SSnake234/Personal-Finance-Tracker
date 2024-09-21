@@ -5,11 +5,11 @@ def list_categories():
     cursor = conn.cursor()
     
     # Query to list all rows from the Categories table
-    cursor.execute("SELECT * FROM Accounts;")
+    cursor.execute("SELECT * FROM Transactions;")
     
     # Fetch and print all rows from the Categories table
     categories = cursor.fetchall()
-    print("Categories in the database:")
+    print("Transactions in the database:")
     for category in categories:
         print(category)  # Prints the entire row of each category
     
