@@ -33,6 +33,7 @@ def category_wise_breakdown():
     conn.close()
     return results
 
+#VISUALIZATION
 def fetch_expenses_by_month_year():
     conn = sqlite3.connect('finance_tracker.db')
     query = """
@@ -51,12 +52,11 @@ def fetch_expenses_by_month_year():
 def plot_expenses_by_month_year():
     df = fetch_expenses_by_month_year()
 
-    # Combine year and month into one column for better readability in the plot
-    df['year_month'] = df['year'] + '-' + df['month']
+    df['month-year'] = df['month'] + '-' + df['year']
 
     # Plotting
     plt.figure(figsize=(10, 6))
-    plt.plot(df['year_month'], df['total_spent'], marker='o', linestyle='-', color='b')
+    plt.plot(df['month-year'], df['total_spent'], marker='o', linestyle='-', color='b')
     plt.xticks(rotation=45)
     plt.xlabel('Month-Year')
     plt.ylabel('Total Spent')

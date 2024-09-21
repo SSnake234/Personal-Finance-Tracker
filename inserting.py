@@ -8,11 +8,11 @@ def insert_user(username, email, password):
     conn.commit()
     conn.close()
     
-def insert_account(user_id, account_name, bank, balance):
+def insert_account(user_id, account_name, balance):
     conn = sqlite3.connect('finance_tracker.db')
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO Accounts (user_id, account_name, bank, balance) VALUES (?, ?, ?, ?)", 
-                   (user_id, account_name, bank, balance))
+    cursor.execute("INSERT INTO Accounts (user_id, account_name, balance) VALUES (?, ?, ?)", 
+                   (user_id, account_name, balance))
     conn.commit()
     conn.close()
     

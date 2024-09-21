@@ -19,7 +19,6 @@ CREATE TABLE IF NOT EXISTS Accounts (
     account_id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
     account_name TEXT,
-    bank TEXT,
     balance REAL,
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 )
