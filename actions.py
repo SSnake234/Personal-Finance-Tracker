@@ -110,14 +110,14 @@ def analysis_action():
         print(analysis_and_visualize.category_wise_breakdown())
         
     elif analysis_choice == 4:
-        account_id = input("Enter account ID: ")
-        month = input("Enter month (MM format): ")
-        year = input("Enter year (YYYY format): ")
-        if validate_month(month):
-            analysis_and_visualize.plot_expenses_by_month(account_id, month, year)
+        choice = int(input("What do you want to visualize (1-expense, 2-balance history): "))
+    
+        if choice == 1:
+            visualize_expense()
+        elif choice == 2:
+            visualize_balance_history()
         else:
-            print("Invalid month! Please enter a valid month in MM format (e.g., 01 for January).")
-            
+            print("Invalid choice! Please enter 1 for expense or 2 for balance history.")
     else:
         print("Invalid choice! Please select a number between 1 and 4.")
         
@@ -125,6 +125,26 @@ def analysis_action():
         #print("Invalid input! Please enter a number.")
     #except Exception as e:
         #print(f"An error occurred: {e}")
+
+def visualize_expense():
+    account_id = input("Enter account ID: ")
+    month = input("Enter month (MM format): ")
+    year = input("Enter year (YYYY format): ")
+    
+    if validate_month(month):
+        analysis_and_visualize.plot_expenses_by_month(account_id, month, year)
+    else:
+        print("Invalid month! Please enter a valid month in MM format (e.g., 01 for January).")
+
+def visualize_balance_history():
+    account_id = input("Enter account ID: ")
+    month = input("Enter month (MM format): ")
+    year = input("Enter year (YYYY format): ")
+    
+    if validate_month(month):
+        analysis_and_visualize.plot_balance_history_by_month(account_id, month, year)
+    else:
+        print("Invalid month! Please enter a valid month in MM format (e.g., 01 for January).")
 
 def custom_action():
     """Allows the user to execute custom SQL commands directly."""

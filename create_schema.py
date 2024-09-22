@@ -15,12 +15,12 @@ CREATE TABLE IF NOT EXISTS Users(
 
 # Create Accounts table
 create_accounts_table = """
-CREATE TABLE IF NOT EXISTS Accounts (
-    account_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER,
-    account_name TEXT,
+CREATE TABLE IF NOT EXISTS BalanceHistory (
+    history_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER,
     balance REAL,
-    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+    transaction_date DATE,
+    FOREIGN KEY (account_id) REFERENCES Accounts(account_id)
 )
 """
 
@@ -47,11 +47,23 @@ CREATE TABLE IF NOT EXISTS Transactions (
 )
 """
 
+#Create Balance_history table
+create_balancehis_table = """
+CREATE TABLE IF NOT EXISTS BalanceHistory (
+    history_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER,
+    balance REAL,
+    transaction_date DATE,
+    FOREIGN KEY (account_id) REFERENCES Accounts(account_id)
+);
+"""
+
 # Execute the table creation queries
 cursor.execute(create_users_table)
 cursor.execute(create_accounts_table)
 cursor.execute(create_categories_table)
 cursor.execute(create_transactions_table)
+cursor.execute(create_balancehis_table)
 
 connection.commit()
 connection.close()

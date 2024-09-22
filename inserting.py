@@ -1,4 +1,5 @@
 import sqlite3
+import datetime
 
 # Utility function to connect to the database
 def get_db_connection():
@@ -54,21 +55,24 @@ def insert_category(category_name):
             conn.close()
 
 # Insert transaction and update account balance
-def insert_transaction(account_id, category_id, amount, transaction_type, description, transaction_date):
+def insert_transaction(account_id, category_id, amount, description, transaction_date):
     conn = get_db_connection()
     if conn:
         try:
             cursor = conn.cursor()
             
-            # Insert transaction (amount is already positive for income and negative for expense)
+            # Insert transaction
             cursor.execute("""INSERT INTO Transactions (account_id, category_id, amount, 
-                                                        transaction_type, description, transaction_date)
-                              VALUES (?, ?, ?, ?, ?, ?)""", 
-                           (account_id, category_id, amount, transaction_type, description, transaction_date))
+                                                        description, transaction_date)
+                              VALUES (?, ?, ?, ?, ?)""", 
+                           (account_id, category_id, amount, description, transaction_date))
             
-            # Update balance (no need to check transaction type)
+            # Update balance in the account
             cursor.execute("UPDATE Accounts SET balance = balance + ? WHERE account_id = ?", 
                            (amount, account_id))
+            
+            # Update balance history of the account
+            update_balance_history(account_id, transaction_date)
             
             conn.commit()
             print("Transaction inserted and account balance updated successfully!")
@@ -77,3 +81,24 @@ def insert_transaction(account_id, category_id, amount, transaction_type, descri
         finally:
             conn.close()
 
+# Function to update account balance history after a transaction
+def update_balance_history(account_id, transaction_date):
+    conn = get_db_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            
+            # Fetch the current balance from Accounts table (already updated)
+            cursor.execute("SELECT balance FROM Accounts WHERE account_id = ?", (account_id,))
+            current_balance = cursor.fetchone()[0]
+
+            # Insert the updated balance into the BalanceHistory table
+            cursor.execute("""INSERT INTO BalanceHistory (account_id, balance, transaction_date) 
+                              VALUES (?, ?, ?)""",
+                           (account_id, current_balance, transaction_date))
+            
+            conn.commit()
+        except sqlite3.Error as e:
+            print(f"Error updating balance history: {e}")
+        finally:
+            conn.close()

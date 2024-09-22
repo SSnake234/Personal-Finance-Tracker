@@ -1,7 +1,6 @@
 import sqlite3
 import pandas as pd
 import matplotlib.pyplot as plt
-from calendar import monthrange
 
 
 #Analysing
@@ -17,7 +16,7 @@ def total_expenses_for_month(month):
     conn = sqlite3.connect('finance_tracker.db')
     cursor = conn.cursor()
     cursor.execute(f"SELECT SUM(amount) FROM Transactions WHERE transaction_type = 'expense' AND strftime('%m', transaction_date) = '{month}'")
-    result = cursor.fetchone()
+    result = cursor.fetchall()
     conn.close()
     return result[0]
 
@@ -37,7 +36,6 @@ def category_wise_breakdown():
 
 
 #Visualizing expenses
-# Fetch expenses per day in the given month
 def fetch_expenses_of_days_in_month(account_id, month, year):
     try:
         conn = sqlite3.connect('finance_tracker.db')
@@ -45,7 +43,7 @@ def fetch_expenses_of_days_in_month(account_id, month, year):
             SELECT strftime('%d', transaction_date) AS day, 
                    ((0 - SUM(amount)) / 1000) AS total_spent
             FROM Transactions
-            WHERE transaction_type = 'expense'
+            WHERE amount < 0
             AND account_id = ?
             AND strftime('%m', transaction_date) = ?
             AND strftime('%Y', transaction_date) = ?
@@ -61,14 +59,6 @@ def fetch_expenses_of_days_in_month(account_id, month, year):
         if conn:
             conn.close()
 
-# Generate all days of the month as a DataFrame
-def generate_full_month_days(month, year):
-    num_days = monthrange(int(year), int(month))[1]
-    days = [f"{day:02d}" for day in range(1, num_days + 1)]
-    full_month_df = pd.DataFrame(days, columns=['day'])
-    return full_month_df
-
-# Plot expenses for a given month
 def plot_expenses_by_month(account_id, month, year):
     df = fetch_expenses_of_days_in_month(account_id, month, year)
 
@@ -76,9 +66,14 @@ def plot_expenses_by_month(account_id, month, year):
         print(f"No expenses found for {month}-{year} with account ID {account_id}.")
         return
 
-    # Merge with existing data, fill missing total_spent with 0
-    full_month_df = generate_full_month_days(month, year)
-    df_full = full_month_df.merge(df, on='day', how='left').fillna(0)
+    # Get the first and last available day in the dataset
+    first_available_day = df['day'].min()
+    last_available_day = int(df['day'].max())
+    # Generate the full range of days between the first and last available days
+    full_range_days = pd.DataFrame([f"{day:02d}" for day in range(int(first_available_day), int(last_available_day) + 1)], columns=['day'])
+
+    # Merge with the fetched expense data, fill missing total_spent with 0 within available range
+    df_full = full_range_days.merge(df, on='day', how='left').fillna(0)
 
     # Plotting
     plt.figure(figsize=(10, 6))
@@ -91,4 +86,67 @@ def plot_expenses_by_month(account_id, month, year):
     plt.tight_layout()
     plt.show()
 
-#plot_expenses_by_month(1, '09', '2024')
+
+
+#Visualizing balance history at the end of day
+def fetch_balance_history_of_days_in_month(account_id, month, year):
+    try:
+        conn = sqlite3.connect('finance_tracker.db')
+        query = """
+            SELECT strftime('%d', transaction_date) AS day, 
+                   balance AS balance_at_end_of_day
+            FROM BalanceHistory
+            WHERE account_id = ?
+            AND strftime('%m', transaction_date) = ?
+            AND strftime('%Y', transaction_date) = ?
+            AND (account_id, transaction_date, history_id) IN (
+                SELECT account_id, transaction_date, MAX(history_id)
+                FROM BalanceHistory
+                WHERE account_id = ?
+                AND strftime('%m', transaction_date) = ?
+                AND strftime('%Y', transaction_date) = ?
+                GROUP BY account_id, transaction_date
+            )
+            ORDER BY transaction_date
+        """
+        df = pd.read_sql_query(query, conn, params=(account_id, month, year, account_id, month, year))
+
+        return df
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return pd.DataFrame() 
+    finally:
+        if conn:
+            conn.close()
+
+def plot_balance_history_by_month(account_id, month, year):
+    df = fetch_balance_history_of_days_in_month(account_id, month, year)
+
+    if df.empty:
+        print(f"No balance history found for {month}-{year} with account ID {account_id}.")
+        return
+
+    # Get the first and last available day in the dataset
+    first_available_day = df['day'].min()
+    last_available_day = int(df['day'].max())
+
+    # Generate the full range of days between the first and last available days
+    full_range_days = pd.DataFrame([f"{day:02d}" for day in range(int(first_available_day), int(last_available_day) + 1)], columns=['day'])
+
+    # Merge the data with the full range of days
+    df_full = full_range_days.merge(df, on='day', how='left')
+
+    # Forward fill missing balances only within the available date range
+    df_full['balance_at_end_of_day'] = df_full['balance_at_end_of_day'].ffill()
+
+    # Plotting
+    plt.figure(figsize=(10, 6))
+    plt.plot(df_full['day'], df_full['balance_at_end_of_day'], marker='o', linestyle='-', color='g')
+    plt.xticks(rotation=45)
+    plt.xlabel('Day')
+    plt.ylabel('Balance (VND)')
+    plt.title(f'Balance History in {month}-{year}')
+    plt.grid(True)
+    plt.ylim(0) 
+    plt.tight_layout()
+    plt.show()
