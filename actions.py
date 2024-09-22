@@ -9,7 +9,8 @@ def inserting_action():
         1 for inserting user
         2 for inserting account
         3 for inserting category
-        4 for inserting transaction"""
+        4 for inserting transaction
+        5 for exiting"""
         )
     
     try:
@@ -23,8 +24,10 @@ def inserting_action():
             insert_category()
         elif choice == 4:
             insert_transaction()
+        elif choice == 5:
+            return
         else:
-            print("Invalid choice! Please choose between 1 and 4.")
+            print("Invalid choice! Please choose between 1 and 5.")
     except ValueError:
         print("Invalid input! Please enter a number.")
 
@@ -35,7 +38,6 @@ def insert_user():
     email = input("Enter email: ")
     password = input("Enter password: ")
     inserting.insert_user(username, email, password)
-    print("User inserted successfully!")
 
 def insert_account():
     """Inserts a new account for a user."""
@@ -45,7 +47,6 @@ def insert_account():
         account_name = input("Enter account name (Name - Bank): ")
         balance = float(input("Enter account balance: "))
         inserting.insert_account(user_id, account_name, balance)
-        print("Account inserted successfully!")
     except ValueError:
         print("Invalid input! Please ensure that user ID and balance are numbers.")
 
@@ -54,8 +55,7 @@ def insert_category():
     print("Inserting category...")
     category_name = input("Enter category name: ")
     inserting.insert_category(category_name)
-    print("Category inserted successfully!")
-
+    
 def insert_transaction():
     """Inserts a new transaction."""
     print("Inserting transaction...")
@@ -72,7 +72,6 @@ def insert_transaction():
         description = input("Enter description: ")
         transaction_date = input("Enter transaction date (YYYY-MM-DD): ")
         inserting.insert_transaction(account_id, category_id, amount, transaction_type, description, transaction_date)
-        print("Transaction inserted successfully!")
     except ValueError as ve:
         print(f"Error: {ve}")
 
@@ -90,9 +89,9 @@ def analysis_action():
         2 for total expenses for a month
         3 for category-wise breakdown
         4 for visualize spending by month
-        """)
+        5 for exiting""")
     #try:
-    analysis_choice = int(input("Enter your choice (1-4): "))
+    analysis_choice = int(input("Enter your choice (1-5): "))
     
     if analysis_choice == 1:
         print("Total Balance: ")
@@ -118,6 +117,8 @@ def analysis_action():
             visualize_balance_history()
         else:
             print("Invalid choice! Please enter 1 for expense or 2 for balance history.")
+    elif analysis_choice == 5:
+            return
     else:
         print("Invalid choice! Please select a number between 1 and 4.")
         

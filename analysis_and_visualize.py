@@ -24,7 +24,7 @@ def category_wise_breakdown():
     conn = sqlite3.connect('finance_tracker.db')
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT c.category_name, SUM(t.amount)
+        SELECT t.account_id, c.category_name, SUM(t.amount)
         FROM Transactions t
         JOIN Categories c ON t.category_id = c.category_id
         WHERE t.transaction_type = 'expense'
