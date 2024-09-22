@@ -1,19 +1,17 @@
 import sqlite3
 
-def list_categories():
-    conn = sqlite3.connect('finance_tracker.db')  # Connect to your database
+def list_transactions():
+    conn = sqlite3.connect('finance_tracker.db')
     cursor = conn.cursor()
-    
-    # Query to list all rows from the Categories table
+
     cursor.execute("SELECT * FROM Transactions;")
-    
-    # Fetch and print all rows from the Categories table
+
     categories = cursor.fetchall()
     print("Transactions in the database:")
     for category in categories:
-        print(category)  # Prints the entire row of each category
+        print(category)
     
     conn.close()
 
-# Example usage
-list_categories()
+
+list_transactions()

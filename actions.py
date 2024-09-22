@@ -76,6 +76,12 @@ def insert_transaction():
     except ValueError as ve:
         print(f"Error: {ve}")
 
+
+def validate_month(month):
+    """Validates month input in MM format."""
+    return len(month) == 2 and month.isdigit() and 1 <= int(month) <= 12
+
+
 def analysis_action():
     """Handles financial analysis like balance, expenses, and category breakdown."""
     print(
@@ -83,27 +89,42 @@ def analysis_action():
         1 for total balance
         2 for total expenses for a month
         3 for category-wise breakdown
-        4 for visualize spending by month and year
+        4 for visualize spending by month
         """)
-    try:
-        analysis_choice = int(input("Enter your choice: "))
+    #try:
+    analysis_choice = int(input("Enter your choice (1-4): "))
+    
+    if analysis_choice == 1:
+        print("Total Balance: ")
+        print(analysis_and_visualize.total_balance())
         
-        if analysis_choice == 1:
-            print("Total Balance: ")
-            print(analysis_and_visualize.total_balance())
-        elif analysis_choice == 2:
-            month = input("Enter month (MM format): ")
+    elif analysis_choice == 2:
+        month = input("Enter month (MM format): ")
+        if validate_month(month):
             print(f"Total Expenses for {month}: {analysis_and_visualize.total_expenses_for_month(month)}")
-        elif analysis_choice == 3:
-            print("Category-wise breakdown:")
-            print(analysis_and_visualize.category_wise_breakdown())
-        elif analysis_choice == 4:
-            print("Visualizing spending by month and year...")
-            analysis_and_visualize.plot_expenses_by_month_year()
         else:
-            print("Invalid choice!")
-    except ValueError:
-        print("Invalid input! Please enter a number.")
+            print("Invalid month! Please enter a valid month in MM format (e.g., 01 for January).")
+            
+    elif analysis_choice == 3:
+        print("Category-wise breakdown:")
+        print(analysis_and_visualize.category_wise_breakdown())
+        
+    elif analysis_choice == 4:
+        account_id = input("Enter account ID: ")
+        month = input("Enter month (MM format): ")
+        year = input("Enter year (YYYY format): ")
+        if validate_month(month):
+            analysis_and_visualize.plot_expenses_by_month(account_id, month, year)
+        else:
+            print("Invalid month! Please enter a valid month in MM format (e.g., 01 for January).")
+            
+    else:
+        print("Invalid choice! Please select a number between 1 and 4.")
+        
+    #except ValueError:
+        #print("Invalid input! Please enter a number.")
+    #except Exception as e:
+        #print(f"An error occurred: {e}")
 
 def custom_action():
     """Allows the user to execute custom SQL commands directly."""
@@ -119,3 +140,5 @@ def custom_action():
         print(f"SQL error: {e}")
     finally:
         conn.close()
+        
+        

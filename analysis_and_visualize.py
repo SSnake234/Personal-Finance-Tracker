@@ -1,8 +1,10 @@
 import sqlite3
 import pandas as pd
 import matplotlib.pyplot as plt
+from calendar import monthrange
 
 
+#Analysing
 def total_balance():
     conn = sqlite3.connect('finance_tracker.db')
     cursor = conn.cursor()
@@ -33,79 +35,60 @@ def category_wise_breakdown():
     conn.close()
     return results
 
-#VISUALIZATION
-def fetch_expenses_by_month_year():
-    conn = sqlite3.connect('finance_tracker.db')
-    query = """
-        SELECT  strftime('%Y', transaction_date) AS year, 
-                strftime('%m', transaction_date) AS month, 
-                SUM(amount) AS total_spent
-        FROM Transactions
-        WHERE transaction_type = 'expense'
-        GROUP BY year, month
-        ORDER BY year, month
-    """
-    df = pd.read_sql_query(query, conn)
-    conn.close()
-    return df
 
-def plot_expenses_by_month_year():
-    df = fetch_expenses_by_month_year()
+#Visualizing expenses
+# Fetch expenses per day in the given month
+def fetch_expenses_of_days_in_month(account_id, month, year):
+    try:
+        conn = sqlite3.connect('finance_tracker.db')
+        query = """
+            SELECT strftime('%d', transaction_date) AS day, 
+                   ((0 - SUM(amount)) / 1000) AS total_spent
+            FROM Transactions
+            WHERE transaction_type = 'expense'
+            AND account_id = ?
+            AND strftime('%m', transaction_date) = ?
+            AND strftime('%Y', transaction_date) = ?
+            GROUP BY day
+            ORDER BY day
+        """
+        df = pd.read_sql_query(query, conn, params=(account_id, month, year)) 
+        return df
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return pd.DataFrame() 
+    finally:
+        if conn:
+            conn.close()
 
-    df['month-year'] = df['month'] + '-' + df['year']
+# Generate all days of the month as a DataFrame
+def generate_full_month_days(month, year):
+    num_days = monthrange(int(year), int(month))[1]
+    days = [f"{day:02d}" for day in range(1, num_days + 1)]
+    full_month_df = pd.DataFrame(days, columns=['day'])
+    return full_month_df
+
+# Plot expenses for a given month
+def plot_expenses_by_month(account_id, month, year):
+    df = fetch_expenses_of_days_in_month(account_id, month, year)
+
+    if df.empty:
+        print(f"No expenses found for {month}-{year} with account ID {account_id}.")
+        return
+
+    # Merge with existing data, fill missing total_spent with 0
+    full_month_df = generate_full_month_days(month, year)
+    df_full = full_month_df.merge(df, on='day', how='left').fillna(0)
 
     # Plotting
     plt.figure(figsize=(10, 6))
-    plt.plot(df['month-year'], df['total_spent'], marker='o', linestyle='-', color='b')
+    plt.plot(df_full['day'], df_full['total_spent'], marker='o', linestyle='-', color='b')
     plt.xticks(rotation=45)
-    plt.xlabel('Month-Year')
-    plt.ylabel('Total Spent')
-    plt.title('Total Spending by Month and Year')
-    plt.grid(True)
-    plt.tight_layout()
-
-    plt.show()
-
-
-import sqlite3
-import pandas as pd
-import matplotlib.pyplot as plt
-
-def fetch_transactions_for_month(account_id, year, month):
-    """Fetch transactions for a specific account and month."""
-    conn = sqlite3.connect('finance_tracker.db')
-    query = """
-    SELECT transaction_date, amount
-    FROM Transactions
-    WHERE account_id = ? AND strftime('%Y', transaction_date) = ? AND strftime('%m', transaction_date) = ?
-    ORDER BY transaction_date
-    """
-    df = pd.read_sql_query(query, conn, params=(account_id, year, month))
-    conn.close()
-    return df
-
-def calculate_cumulative_balance(df, starting_balance):
-    """Calculate the cumulative balance over time."""
-    df['cumulative_balance'] = df['amount'].cumsum() + starting_balance
-    return df
-
-def plot_balance_over_month(df):
-    """Plot balance changes over time."""
-    plt.figure(figsize=(10, 6))
-    plt.plot(df['transaction_date'], df['cumulative_balance'], marker='o', linestyle='-', color='b')
-    plt.xticks(rotation=45)
-    plt.xlabel('Date')
-    plt.ylabel('Cumulative Balance')
-    plt.title('Account Balance Throughout the Month')
+    plt.xlabel('Day')
+    plt.ylabel('Total Spent (in 1k VND)')
+    plt.title(f'Total Spending in {month}-{year}')
     plt.grid(True)
     plt.tight_layout()
     plt.show()
 
-# Example usage
-def visualize_balance_for_month(account_id, starting_balance, year, month):
-    transactions_df = fetch_transactions_for_month(account_id, year, month)
-    if not transactions_df.empty:
-        transactions_df = calculate_cumulative_balance(transactions_df, starting_balance)
-        plot_balance_over_month(transactions_df)
-    else:
-        print("No transactions found for this month.")
+#plot_expenses_by_month(1, '09', '2024')
